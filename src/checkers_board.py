@@ -101,7 +101,7 @@ class CheckersBoard:
         """
         self.matrix = []
         for i in range(3):
-            self.matrix.append([('b' if (i + j) % 2 == 0 else '') for j in range(8)])
+            self.matrix.append([('' if (i + j) % 2 == 0 else 'b') for j in range(8)])
         for i in range(2):
             self.matrix.append(['' for j in range(8)])
         for i in range(3):
@@ -109,7 +109,7 @@ class CheckersBoard:
         for i in self.matrix:
             print(i)
     
-    def select_pawn(self, row: int, col: int) -> tuple[tuple[int, int, tuple[int, int] | None]]:
+    def select_pawn(self, row: int, col: int) -> tuple[int, int, tuple[int, int] | None] | None:
         """
         Select pawn / make move on given place
         """
@@ -138,5 +138,10 @@ class CheckersBoard:
             self.row, self.col = row, col
             self.moves = self.__possible_moves(row, col)
             self.kill_flag = False
+        print()
+        for i in self.matrix:
+            print([x if x != '' else ' ' for x in i])
+        return
+        
          
     
