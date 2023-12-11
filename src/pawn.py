@@ -16,3 +16,8 @@ class Pawn:
     
     def draw(self) -> None:
         self.screen.blit(self.image, (self.screen_x, self.screen_y))
+
+    def move(self, coords: tuple[int, int]) -> None:
+        self.y, self.x = coords
+        self.screen_x = self.BOARD_START[0]+64*self.x
+        self.screen_y = self.BOARD_START[1]+64*self.y

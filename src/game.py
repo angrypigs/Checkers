@@ -2,6 +2,7 @@ import pygame
 
 from src.checkers_board import CheckersBoard
 from src.pawn import Pawn
+from src.move import Move
 from src.utils import *
 
 
@@ -43,8 +44,19 @@ class Game:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 a = (event.pos[1] - self.BOARD_START[1]) // 64
                 b = (event.pos[0] - self.BOARD_START[0]) // 64
-                if 0 <= a <= 7 and 0 <= b <= 7:
-                    self.board.select_pawn(a, b)
+                self.handle_moves(a, b)
+
+    def handle_moves(self, a: int, b: int) -> None:
+        if 0 <= a <= 7 and 0 <= b <= 7:
+            move = self.board.select_pawn(a, b)
+            if isinstance(move, Move):
+                for pawn in self.pawns:
+                    print((pawn.y, pawn.x), move.start)
+                    if (pawn.y, pawn.x) == move.start:
+                        pawn.move(move.end)
+                    if (pawn.y, pawn.x) == move.kill:
+                        self.pawns.remove(Pawn)
+
 
     def draw_game(self) -> None:
         self.screen.blit(self.images["battlefield"], self.BOARD_START)
