@@ -6,7 +6,7 @@ class CheckersBoard:
     """
 
     def __init__(self) -> None:
-        self.ENEMIES = {'b': 'wW', 'w': 'bB', 'B': 'Ww', 'W': 'Bb', '': ''}
+        self.ENEMIES = {'b': 'wW', 'w': 'bB', 'B': 'Ww', 'W': 'Bb', 'O': ' '}
         self.moves : tuple[Move] = ()
         self.turn = 'w'
         self.kill_flag = False
@@ -17,17 +17,17 @@ class CheckersBoard:
                pawn: tuple[int, int], 
                dest: tuple[int, int]) -> None:
         self.matrix[dest[0]][dest[1]] = self.matrix[pawn[0]][pawn[1]]
-        self.matrix[pawn[0]][pawn[1]] = ''
-        print("move", pawn, dest)
+        self.matrix[pawn[0]][pawn[1]] = 'O'
+        # print("move", pawn, dest)
 
     def __kill(self, 
                pawn: tuple[int, int], 
                dest: tuple[int, int], 
                kill: tuple[int, int]) -> None:
         self.matrix[dest[0]][dest[1]] = self.matrix[pawn[0]][pawn[1]]
-        self.matrix[kill[0]][kill[1]] = ''
-        self.matrix[pawn[0]][pawn[1]] = ''
-        print("kill", pawn, dest, kill)
+        self.matrix[kill[0]][kill[1]] = 'O'
+        self.matrix[pawn[0]][pawn[1]] = 'O'
+        # print("kill", pawn, dest, kill)
     
     def __possible_kills(self, row: int, col: int) -> tuple[Move]:
         """
@@ -59,8 +59,8 @@ class CheckersBoard:
                     if (0 <= c <= 7 and
                         0 <= d <= 7 and
                         self.matrix[a][b] in enemies and
-                        self.matrix[c][d] == ''):
-                        moves.append(Move((row, col), (a, b), (c, d)))
+                        self.matrix[c][d] == 'O'):
+                        moves.append(Move((row, col), (c, d), (a, b)))
         return tuple(moves)
 
     def __possible_moves(self, row: int, col: int) -> tuple[Move]:
@@ -75,27 +75,27 @@ class CheckersBoard:
                     a, b = row + dirs[d][0], col + dirs[d][1]
                     while (0 <= a <= 7 and 
                            0 <= b <= 7 and 
-                            self.matrix[a][b] == ''):
+                            self.matrix[a][b] == 'O'):
                         moves.append(Move((row, col), (a, b), None))
                         a += dirs[d][0]
                         b += dirs[d][1]
             case 'b':
                 if (0 <= row + 1 <= 7 and
                     0 <= col - 1 <= 7 and
-                    self.matrix[row + 1][col - 1] == ''):
+                    self.matrix[row + 1][col - 1] == 'O'):
                     moves.append(Move((row, col), (row + 1, col - 1), None))
                 if (0 <= row + 1 <= 7 and
                     0 <= col + 1 <= 7 and
-                    self.matrix[row + 1][col + 1] == ''):
+                    self.matrix[row + 1][col + 1] == 'O'):
                     moves.append(Move((row, col), (row + 1, col + 1), None))
             case 'w':
                 if (0 <= row - 1 <= 7 and
                     0 <= col - 1 <= 7 and
-                    self.matrix[row - 1][col - 1] == ''):
+                    self.matrix[row - 1][col - 1] == 'O'):
                     moves.append(Move((row, col), (row - 1, col - 1), None))
                 if (0 <= row - 1 <= 7 and
                     0 <= col + 1 <= 7 and
-                    self.matrix[row - 1][col + 1] == ''):
+                    self.matrix[row - 1][col + 1] == 'O'):
                     moves.append(Move((row, col), (row - 1, col + 1), None))
         return tuple(moves) + self.__possible_kills(row, col)
 
@@ -105,11 +105,11 @@ class CheckersBoard:
         """
         self.matrix = []
         for i in range(3):
-            self.matrix.append([('' if (i + j) % 2 == 0 else 'b') for j in range(8)])
+            self.matrix.append([('O' if (i + j) % 2 == 0 else 'b') for j in range(8)])
         for i in range(2):
-            self.matrix.append(['' for j in range(8)])
+            self.matrix.append(['O' for j in range(8)])
         for i in range(3):
-            self.matrix.append([('w' if (i + j) % 2 == 0 else '') for j in range(8)])
+            self.matrix.append([('w' if (i + j) % 2 == 0 else 'O') for j in range(8)])
     
     def select_pawn(self, row: int, col: int) -> Move | tuple[Move]:
         """
@@ -123,8 +123,10 @@ class CheckersBoard:
                         self.__move((self.row, self.col), (row, col))
                         self.row, self.col = -1, -1
                     else:
-                        self.__kill((self.row, self.col), move.kill, (row, col))
+                        self.__kill((self.row, self.col), (row, col), move.kill)
                         kills = self.__possible_kills(row, col)
+                        for kill in kills:
+                            print(kill)
                         if len(kills) > 0:
                             self.kill_flag = True
                             self.moves = kills
@@ -143,9 +145,10 @@ class CheckersBoard:
             self.moves = self.__possible_moves(row, col)
             self.kill_flag = False
             moves = self.moves
+        print(self.row, self.col)
         print()
         for i in self.matrix:
-            print([x if x != '' else ' ' for x in i])
+            print(i)
         return moves
         
          

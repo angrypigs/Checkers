@@ -11,12 +11,14 @@ class Game:
     def __init__(self) -> None:
         self.WIDTH = 700
         self.HEIGHT = 700
-        self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
+        # self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
+        self.BOARD_START = (20, 20)
         self.FPS = 60
         self.run = True
         self.pawns : list[Pawn] = []
         self.board = CheckersBoard()
         self.board.reset_board()
+        self.matrix = self.board.matrix
         self.__init_assets()
         pygame.init()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -25,7 +27,7 @@ class Game:
         for i in range(8):
             for j in range(8):
                 pawn = self.board.matrix[i][j]
-                if pawn != '':
+                if pawn != 'O':
                     self.pawns.append(Pawn(self.screen, 
                                            self.images[pawn], 
                                            self.BOARD_START,
@@ -51,17 +53,29 @@ class Game:
             move = self.board.select_pawn(a, b)
             if isinstance(move, Move):
                 for pawn in self.pawns:
-                    print((pawn.y, pawn.x), move.start)
                     if (pawn.y, pawn.x) == move.start:
                         pawn.move(move.end)
                     if (pawn.y, pawn.x) == move.kill:
-                        self.pawns.remove(Pawn)
+                        self.pawns.remove(pawn)
 
 
     def draw_game(self) -> None:
         self.screen.blit(self.images["battlefield"], self.BOARD_START)
         for pawn in self.pawns:
             pawn.draw()
+        for i in range(8):
+            for j in range(8):
+                match self.matrix[i][j]:
+                    case 'b':
+                        color = (206, 68, 22)
+                    case 'w':
+                        color = (22, 117, 206)
+                    case _:
+                        color = (255, 255, 255)
+                pygame.draw.rect(self.screen, color,
+                                 (540+j*18, 540+i*18, 18, 18)
+                                 )
+        
     
     def __init_assets(self) -> None:
         self.images = {

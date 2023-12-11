@@ -10,3 +10,6 @@ class Move:
     
     def is_not_kill(self) -> bool:
         return self.kill is None
+
+    def __str__(self) -> str:
+        return f"{self.start} {self.end} {self.kill}"
