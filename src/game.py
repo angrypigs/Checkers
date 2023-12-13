@@ -6,6 +6,7 @@ from src.move import Move
 from src.utils import *
 
 
+
 class Game:
 
     def __init__(self) -> None:
@@ -63,9 +64,11 @@ class Game:
                 for pawn in self.pawns:
                     if (pawn.y, pawn.x) == move[0].start:
                         pawn.move(move[0].end)
+                        pawn.image = self.images[self.matrix[move[0].end[0]][move[0].end[1]]]
                     if (pawn.y, pawn.x) == move[0].kill:
                         self.pawns.remove(pawn)
             self.moves = tuple([x.end for x in move[1]])
+
 
     def draw_game(self) -> None:
         """
@@ -73,8 +76,9 @@ class Game:
         """
         self.screen.blit(self.images["battlefield"], self.BOARD_START)
         for pos in self.moves:
+            color = (211, 24, 24, 120) if self.board.turn == 'b' else (24, 107, 211, 120)
             pygame.draw.rect(self.screen, 
-                             (255, 0, 0),
+                             color,
                              (self.BOARD_START[0]+pos[1]*64,
                              self.BOARD_START[1]+pos[0]*64,
                              64, 64))
