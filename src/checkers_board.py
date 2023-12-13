@@ -16,19 +16,12 @@ class CheckersBoard:
 
     def __move(self, 
                pawn: tuple[int, int], 
-               dest: tuple[int, int]) -> None:
-        self.matrix[dest[0]][dest[1]] = self.matrix[pawn[0]][pawn[1]]
-        self.matrix[pawn[0]][pawn[1]] = 'O'
-        # print("move", pawn, dest)
-
-    def __kill(self, 
-               pawn: tuple[int, int], 
                dest: tuple[int, int], 
-               kill: tuple[int, int]) -> None:
+               kill: tuple[int, int] | None = None) -> None:
         self.matrix[dest[0]][dest[1]] = self.matrix[pawn[0]][pawn[1]]
-        self.matrix[kill[0]][kill[1]] = 'O'
+        if kill is not None:
+            self.matrix[kill[0]][kill[1]] = 'O'
         self.matrix[pawn[0]][pawn[1]] = 'O'
-        # print("kill", pawn, dest, kill)
     
     def __possible_kills(self, row: int, col: int) -> tuple[Move]:
         """
@@ -116,11 +109,15 @@ class CheckersBoard:
         self.turn = 'b' if self.turn == 'w' else 'w'
         return self.turn
  
-    def select_pawn(self, row: int, col: int) -> Move | tuple[Move]:
+    def select_pawn(self, row: int, col: int) -> tuple[Move | None, tuple[Move]]:
         """
         Select pawn / make move on given place
+
+        Return tuple of:
+        - done move (or None if move wasn't done) 
+        - tuple of possible moves
         """
-        moves = None
+        move_done = None
         for move in self.moves:
             if (row, col) == move.end:
                 if move.is_not_kill():
@@ -130,7 +127,7 @@ class CheckersBoard:
                     self.moves = ()
                     self.swap()
                 else:
-                    self.__kill((self.row, self.col), (row, col), move.kill)
+                    self.__move((self.row, self.col), (row, col), move.kill)
                     kills = self.__possible_kills(row, col)
                     for kill in kills:
                         print(kill)
@@ -143,7 +140,7 @@ class CheckersBoard:
                         self.kill_flag = False
                         self.moves = ()
                         self.swap()
-                moves = move
+                move_done = move
                 break
         else:
             if (row, col) == (-1, -1):
@@ -153,12 +150,11 @@ class CheckersBoard:
             if not self.kill_flag and turn == self.turn:
                 self.row, self.col = row, col
                 self.moves = self.__possible_moves(row, col)
-                moves = self.moves
         print(self.row, self.col)
         print()
         for i in self.matrix:
             print(i)
-        return moves
+        return (move_done, self.moves)
 
         
          

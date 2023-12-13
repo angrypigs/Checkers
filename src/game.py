@@ -11,11 +11,12 @@ class Game:
     def __init__(self) -> None:
         self.WIDTH = 700
         self.HEIGHT = 700
-        # self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
-        self.BOARD_START = (20, 20)
+        self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
+        # self.BOARD_START = (20, 20)
         self.FPS = 60
         self.run = True
         self.pawns : list[Pawn] = []
+        self.moves : tuple[tuple[int, int]] = ()
         self.board = CheckersBoard()
         self.board.reset_board()
         self.matrix = self.board.matrix
@@ -40,6 +41,9 @@ class Game:
             self.clock.tick(self.FPS)
     
     def handle_events(self) -> None:
+        """
+        Handle events in main loop
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.run = False
@@ -49,35 +53,51 @@ class Game:
                 self.handle_moves(a, b)
 
     def handle_moves(self, a: int, b: int) -> None:
+        """
+        Handle board input
+        """
         if 0 <= a <= 7 and 0 <= b <= 7:
             move = self.board.select_pawn(a, b)
-            if isinstance(move, Move):
+            if move[0] is not None:
+                self.moves = ()
                 for pawn in self.pawns:
-                    if (pawn.y, pawn.x) == move.start:
-                        pawn.move(move.end)
-                    if (pawn.y, pawn.x) == move.kill:
+                    if (pawn.y, pawn.x) == move[0].start:
+                        pawn.move(move[0].end)
+                    if (pawn.y, pawn.x) == move[0].kill:
                         self.pawns.remove(pawn)
-
+            self.moves = tuple([x.end for x in move[1]])
 
     def draw_game(self) -> None:
+        """
+        Draw game components
+        """
         self.screen.blit(self.images["battlefield"], self.BOARD_START)
+        for pos in self.moves:
+            pygame.draw.rect(self.screen, 
+                             (255, 0, 0),
+                             (self.BOARD_START[0]+pos[1]*64,
+                             self.BOARD_START[1]+pos[0]*64,
+                             64, 64))
         for pawn in self.pawns:
             pawn.draw()
-        for i in range(8):
-            for j in range(8):
-                match self.matrix[i][j]:
-                    case 'b':
-                        color = (206, 68, 22)
-                    case 'w':
-                        color = (22, 117, 206)
-                    case _:
-                        color = (255, 255, 255)
-                pygame.draw.rect(self.screen, color,
-                                 (540+j*18, 540+i*18, 18, 18)
-                                 )
+        # for i in range(8):
+        #     for j in range(8):
+        #         match self.matrix[i][j]:
+        #             case 'b':
+        #                 color = (206, 68, 22)
+        #             case 'w':
+        #                 color = (22, 117, 206)
+        #             case _:
+        #                 color = (255, 255, 255)
+        #         pygame.draw.rect(self.screen, color,
+        #                          (540+j*18, 540+i*18, 18, 18)
+        #                          )
         
     
     def __init_assets(self) -> None:
+        """
+        Create dict with assets
+        """
         self.images = {
             "battlefield": pygame.image.load(res_path("assets/battlefield.png")),
             "w": pygame.image.load(res_path("assets/blue_top.png")),
