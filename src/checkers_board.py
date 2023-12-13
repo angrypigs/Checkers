@@ -8,6 +8,7 @@ class CheckersBoard:
     def __init__(self) -> None:
         self.ENEMIES = {'b': 'wW', 'w': 'bB', 'B': 'Ww', 'W': 'Bb', 'O': ' '}
         self.moves : tuple[Move] = ()
+        self.matrix : list[list[str]]
         self.turn = 'w'
         self.kill_flag = False
         self.row = 0
@@ -110,46 +111,55 @@ class CheckersBoard:
             self.matrix.append(['O' for j in range(8)])
         for i in range(3):
             self.matrix.append([('w' if (i + j) % 2 == 0 else 'O') for j in range(8)])
-    
+
+    def swap(self) -> str:
+        self.turn = 'b' if self.turn == 'w' else 'w'
+        return self.turn
+ 
     def select_pawn(self, row: int, col: int) -> Move | tuple[Move]:
         """
         Select pawn / make move on given place
         """
         moves = None
-        if (row, col) != (-1, -1):
-            for move in self.moves:
-                if (row, col) == move.end:
-                    if move.is_not_kill():
-                        self.__move((self.row, self.col), (row, col))
-                        self.row, self.col = -1, -1
+        for move in self.moves:
+            if (row, col) == move.end:
+                if move.is_not_kill():
+                    self.__move((self.row, self.col), (row, col))
+                    self.row, self.col = -1, -1
+                    self.kill_flag = False
+                    self.moves = ()
+                    self.swap()
+                else:
+                    self.__kill((self.row, self.col), (row, col), move.kill)
+                    kills = self.__possible_kills(row, col)
+                    for kill in kills:
+                        print(kill)
+                    if len(kills) > 0:
+                        self.kill_flag = True
+                        self.moves = kills
+                        self.row, self.col = row, col
                     else:
-                        self.__kill((self.row, self.col), (row, col), move.kill)
-                        kills = self.__possible_kills(row, col)
-                        for kill in kills:
-                            print(kill)
-                        if len(kills) > 0:
-                            self.kill_flag = True
-                            self.moves = kills
-                            self.row, self.col = row, col
-                        else:
-                            self.row, self.col = -1, -1
-                    moves = move
-                    break
-            else:
-                if not self.kill_flag:
-                    self.row, self.col = row, col
-                    self.moves = self.__possible_moves(row, col)
-                    moves = self.moves
+                        self.row, self.col = -1, -1
+                        self.kill_flag = False
+                        self.moves = ()
+                        self.swap()
+                moves = move
+                break
         else:
-            self.row, self.col = row, col
-            self.moves = self.__possible_moves(row, col)
-            self.kill_flag = False
-            moves = self.moves
+            if (row, col) == (-1, -1):
+                turn = 'O'
+            else:
+                turn = self.matrix[row][col].lower()
+            if not self.kill_flag and turn == self.turn:
+                self.row, self.col = row, col
+                self.moves = self.__possible_moves(row, col)
+                moves = self.moves
         print(self.row, self.col)
         print()
         for i in self.matrix:
             print(i)
         return moves
+
         
          
     
