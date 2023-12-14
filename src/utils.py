@@ -16,3 +16,23 @@ def clamp(val: float, bottom: float, top: float) -> float:
     Clamp val between bottom and top values
     """
     return max(min(val, top), bottom)
+
+def lerp(a: float, 
+         b: float, 
+         steps: int,
+         to_integers: bool = False
+         ) -> tuple[float | int]:
+    """
+    Return tuple of values linear interpolated between 
+    a and b in given steps, if to_integer is True then
+    return list of int, not float
+    """
+    result = []
+    for i in range(steps):
+        t = i / (steps - 1)
+        t = 1 - (1 - t) ** 2
+        value = a + (b - a) * t
+        if to_integers:
+            value = int(value)
+        result.append(value)
+    return tuple(result)

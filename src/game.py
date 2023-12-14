@@ -16,6 +16,7 @@ class Game:
         # self.BOARD_START = (20, 20)
         self.FPS = 60
         self.run = True
+        self.ingame = False
         self.pawns : list[Pawn] = []
         self.moves : tuple[tuple[int, int]] = ()
         self.board = CheckersBoard()
@@ -48,7 +49,9 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.run = False
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if (event.type == pygame.MOUSEBUTTONDOWN and 
+                event.button == 1 and
+                all(self.pawns)):
                 a = (event.pos[1] - self.BOARD_START[1]) // 64
                 b = (event.pos[0] - self.BOARD_START[0]) // 64
                 self.handle_moves(a, b)

@@ -14,6 +14,10 @@ class CheckersBoard:
         self.row = 0
         self.col = 0
 
+    def change_turn(self) -> str:
+        self.turn = 'b' if self.turn == 'w' else 'w'
+        return self.turn
+
     def __move(self, 
                pawn: tuple[int, int], 
                dest: tuple[int, int], 
@@ -30,7 +34,7 @@ class CheckersBoard:
         self.matrix[pawn[0]][pawn[1]] = 'O'
         return change_image
     
-    def __possible_kills(self, row: int, col: int) -> tuple[Move]:
+    def possible_kills(self, row: int, col: int) -> tuple[Move]:
         """
         Return tuple of possible kill moves of a given place
         """
@@ -66,7 +70,7 @@ class CheckersBoard:
                         moves.append(Move((row, col), (c, d), (a, b)))
         return tuple(moves)
 
-    def __possible_moves(self, row: int, col: int) -> tuple[Move]:
+    def possible_moves(self, row: int, col: int) -> tuple[Move]:
         """
         Return tuple of all possible moves (with kills) of a given place
         """
@@ -100,7 +104,7 @@ class CheckersBoard:
                     0 <= col + 1 <= 7 and
                     self.matrix[row - 1][col + 1] == 'O'):
                     moves.append(Move((row, col), (row - 1, col + 1), None))
-        return tuple(moves) + self.__possible_kills(row, col)
+        return tuple(moves) + self.possible_kills(row, col)
 
     def reset_board(self) -> None:
         """
@@ -113,10 +117,6 @@ class CheckersBoard:
             self.matrix.append(['O' for j in range(8)])
         for i in range(3):
             self.matrix.append([('w' if (i + j) % 2 == 0 else 'O') for j in range(8)])
-
-    def swap(self) -> str:
-        self.turn = 'b' if self.turn == 'w' else 'w'
-        return self.turn
  
     def select_pawn(self, row: int, col: int) -> tuple[Move | None, tuple[Move], bool]:
         """
@@ -130,18 +130,19 @@ class CheckersBoard:
         move_done = None
         change_image = False
         for move in self.moves:
+            # check if input coords are in one of possible moves from the last input
             if (row, col) == move.end:
+                # check if move is a normal one (no kill)
                 if move.is_not_kill():
                     change_image = self.__move((self.row, self.col), (row, col))
                     self.row, self.col = -1, -1
                     self.kill_flag = False
                     self.moves = ()
-                    self.swap()
+                    self.change_turn()
                 else:
                     self.__move((self.row, self.col), (row, col), move.kill)
-                    kills = self.__possible_kills(row, col)
-                    for kill in kills:
-                        print(kill)
+                    kills = self.possible_kills(row, col)
+                    # check if after kill there are any more available
                     if len(kills) > 0:
                         self.kill_flag = True
                         self.moves = kills
@@ -150,7 +151,7 @@ class CheckersBoard:
                         self.row, self.col = -1, -1
                         self.kill_flag = False
                         self.moves = ()
-                        self.swap()
+                        self.change_turn()
                 move_done = move
                 break
         else:
@@ -158,11 +159,9 @@ class CheckersBoard:
                 turn = 'O'
             else:
                 turn = self.matrix[row][col].lower()
+            # otherwise if isn't any pawn in 'kill mode' and turn is equal to pawn under coords,
+            # then set the current pawn to this coords and get it's possible moves
             if not self.kill_flag and turn == self.turn:
                 self.row, self.col = row, col
-                self.moves = self.__possible_moves(row, col)
-        print(self.row, self.col)
-        print()
-        for i in self.matrix:
-            print(i)
+                self.moves = self.possible_moves(row, col)
         return (move_done, self.moves, change_image)
