@@ -48,3 +48,5 @@ class Pawn:
         self.screen_x = self.x_lerp[0]
         self.screen_y = self.y_lerp[1]
         self._counter = 0
+        print(self.x_lerp, self.y_lerp, "\n")
+        

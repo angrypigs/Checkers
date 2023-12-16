@@ -12,8 +12,8 @@ class Game:
     def __init__(self) -> None:
         self.WIDTH = 700
         self.HEIGHT = 700
-        self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
-        # self.BOARD_START = (20, 20)
+        # self.BOARD_START = ((self.WIDTH-512)//2, (self.HEIGHT-512)//2)
+        self.BOARD_START = (20, 20)
         self.FPS = 60
         self.run = True
         self.ingame = False
@@ -64,12 +64,16 @@ class Game:
             move = self.board.select_pawn(a, b)
             if move[0] is not None:
                 self.moves = ()
+                pawn_to_remove = None
                 for pawn in self.pawns:
                     if (pawn.y, pawn.x) == move[0].start:
                         pawn.move(move[0].end)
-                        pawn.image = self.images[self.matrix[move[0].end[0]][move[0].end[1]]]
+                        if move[2]:
+                            pawn.image = self.images[self.matrix[move[0].end[0]][move[0].end[1]]]
                     if (pawn.y, pawn.x) == move[0].kill:
-                        self.pawns.remove(pawn)
+                        pawn_to_remove = pawn
+                if pawn_to_remove is not None:
+                    self.pawns.remove(pawn_to_remove)
             self.moves = tuple([x.end for x in move[1]])
 
 
@@ -87,18 +91,22 @@ class Game:
                              64, 64))
         for pawn in self.pawns:
             pawn.draw()
-        # for i in range(8):
-        #     for j in range(8):
-        #         match self.matrix[i][j]:
-        #             case 'b':
-        #                 color = (206, 68, 22)
-        #             case 'w':
-        #                 color = (22, 117, 206)
-        #             case _:
-        #                 color = (255, 255, 255)
-        #         pygame.draw.rect(self.screen, color,
-        #                          (540+j*18, 540+i*18, 18, 18)
-        #                          )
+        for i in range(8):
+            for j in range(8):
+                match self.matrix[i][j]:
+                    case 'b':
+                        color = (206, 68, 22)
+                    case 'w':
+                        color = (22, 117, 206)
+                    case 'B':
+                        color = (156, 50, 15)
+                    case 'W':
+                        color = (14, 84, 149)
+                    case _:
+                        color = (255, 255, 255)
+                pygame.draw.rect(self.screen, color,
+                                 (540+j*18, 540+i*18, 18, 18)
+                                 )
         
     
     def __init_assets(self) -> None:
