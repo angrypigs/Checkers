@@ -14,7 +14,7 @@ class Pawn:
         self.image = image
         self.BOARD_START = start
         self.ANIM_LIMIT = 10
-        self.anim = True
+        self.anim = False
         self._counter = 0
         self.x = x
         self.y = y
@@ -26,9 +26,9 @@ class Pawn:
 
     def draw(self) -> None:
         self.screen.blit(self.image, (self.screen_x, self.screen_y))
-        if not self.anim:
+        if self.anim:
             if self._counter == self.ANIM_LIMIT - 1:
-                self.anim = True
+                self.anim = False
             else:
                 self._counter += 1
                 self.screen_x = self.x_lerp[self._counter]
@@ -36,7 +36,7 @@ class Pawn:
 
     def move(self, coords: tuple[int, int]) -> None:
         self.y, self.x = coords
-        self.anim = False
+        self.anim = True
         self.x_lerp = lerp(self.screen_x, 
                            self.BOARD_START[0] + 64 * self.x, 
                            self.ANIM_LIMIT,

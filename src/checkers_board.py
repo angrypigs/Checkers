@@ -21,18 +21,15 @@ class CheckersBoard:
     def __move(self, 
                pawn: tuple[int, int], 
                dest: tuple[int, int], 
-               kill: tuple[int, int] | None = None) -> bool:
-        change_image = False
+               kill: tuple[int, int] | None = None) -> None:
         pawn_copy = self.matrix[pawn[0]][pawn[1]]
         self.matrix[dest[0]][dest[1]] = pawn_copy
         if (dest[0] == 0 and pawn_copy == 'w' or
             dest[0] == 7 and pawn_copy == 'b'):
             self.matrix[dest[0]][dest[1]] = pawn_copy.upper()
-            change_image = True
         if kill is not None:
             self.matrix[kill[0]][kill[1]] = 'O'
         self.matrix[pawn[0]][pawn[1]] = 'O'
-        return change_image
     
     def possible_kills(self, row: int, col: int) -> tuple[Move]:
         """
@@ -128,13 +125,12 @@ class CheckersBoard:
         - flag informing about the need for image change for pawn (default False)
         """
         move_done = None
-        change_image = False
         for move in self.moves:
             # check if input coords are in one of possible moves from the last input
             if (row, col) == move.end:
                 # check if move is a normal one (no kill)
                 if move.is_not_kill():
-                    change_image = self.__move((self.row, self.col), (row, col))
+                    self.__move((self.row, self.col), (row, col))
                     self.row, self.col = -1, -1
                     self.kill_flag = False
                     self.moves = ()
@@ -164,4 +160,4 @@ class CheckersBoard:
             if not self.kill_flag and turn == self.turn:
                 self.row, self.col = row, col
                 self.moves = self.possible_moves(row, col)
-        return (move_done, self.moves, change_image)
+        return (move_done, self.moves)
