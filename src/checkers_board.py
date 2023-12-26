@@ -1,4 +1,5 @@
 from src.move import Move
+from src.utils import *
 
 class CheckersBoard:
     """
@@ -30,78 +31,6 @@ class CheckersBoard:
         if kill is not None:
             self.matrix[kill[0]][kill[1]] = 'O'
         self.matrix[pawn[0]][pawn[1]] = 'O'
-    
-    def possible_kills(self, row: int, col: int) -> tuple[Move]:
-        """
-        Return tuple of possible kill moves of a given place
-        """
-        moves = []
-        dirs = ((1, 1), (1, -1), (-1, 1), (-1, -1))
-        enemies = self.ENEMIES[self.matrix[row][col]]
-        friends = f"{self.matrix[row][col].lower()}{self.matrix[row][col].upper()}"
-        match self.matrix[row][col]:
-            case "B" | "W":
-                for d in range(4):
-                    a, b = row + dirs[d][0], col + dirs[d][1]
-                    flag = False
-                    while (0 <= a <= 7 and 
-                           0 <= b <= 7 and 
-                           (not flag or 
-                            self.matrix[a][b] not in enemies) and
-                            self.matrix[a][b] not in friends):
-                        if flag:
-                            moves.append(Move((row, col), (a, b), kill))
-                        if self.matrix[a][b] in enemies:
-                            flag = True
-                            kill = (a, b)
-                        a += dirs[d][0]
-                        b += dirs[d][1]
-            case "b" | "w":
-                for d in range(4):
-                    a, b = row + dirs[d][0], col + dirs[d][1]
-                    c, d = row + 2 * dirs[d][0], col + 2 * dirs[d][1]
-                    if (0 <= c <= 7 and
-                        0 <= d <= 7 and
-                        self.matrix[a][b] in enemies and
-                        self.matrix[c][d] == 'O'):
-                        moves.append(Move((row, col), (c, d), (a, b)))
-        return tuple(moves)
-
-    def possible_moves(self, row: int, col: int) -> tuple[Move]:
-        """
-        Return tuple of all possible moves (with kills) of a given place
-        """
-        moves = []
-        dirs = ((1, 1), (1, -1), (-1, 1), (-1, -1))
-        match self.matrix[row][col]:
-            case 'B' | 'W':
-                for d in range(4):
-                    a, b = row + dirs[d][0], col + dirs[d][1]
-                    while (0 <= a <= 7 and 
-                           0 <= b <= 7 and 
-                            self.matrix[a][b] == 'O'):
-                        moves.append(Move((row, col), (a, b), None))
-                        a += dirs[d][0]
-                        b += dirs[d][1]
-            case 'b':
-                if (0 <= row + 1 <= 7 and
-                    0 <= col - 1 <= 7 and
-                    self.matrix[row + 1][col - 1] == 'O'):
-                    moves.append(Move((row, col), (row + 1, col - 1), None))
-                if (0 <= row + 1 <= 7 and
-                    0 <= col + 1 <= 7 and
-                    self.matrix[row + 1][col + 1] == 'O'):
-                    moves.append(Move((row, col), (row + 1, col + 1), None))
-            case 'w':
-                if (0 <= row - 1 <= 7 and
-                    0 <= col - 1 <= 7 and
-                    self.matrix[row - 1][col - 1] == 'O'):
-                    moves.append(Move((row, col), (row - 1, col - 1), None))
-                if (0 <= row - 1 <= 7 and
-                    0 <= col + 1 <= 7 and
-                    self.matrix[row - 1][col + 1] == 'O'):
-                    moves.append(Move((row, col), (row - 1, col + 1), None))
-        return tuple(moves) + self.possible_kills(row, col)
 
     def reset_board(self) -> None:
         """
@@ -124,6 +53,7 @@ class CheckersBoard:
         - tuple of possible moves
         - flag informing about the need for image change for pawn (default False)
         """
+        print(is_place_safe(self.matrix, row, col, self.matrix[row][col]))
         move_done = None
         for move in self.moves:
             # check if input coords are in one of possible moves from the last input
@@ -137,7 +67,7 @@ class CheckersBoard:
                     self.change_turn()
                 else:
                     self.__move((self.row, self.col), (row, col), move.kill)
-                    kills = self.possible_kills(row, col)
+                    kills = possible_kills(self.matrix, row, col)
                     # check if after kill there are any more available
                     if len(kills) > 0:
                         self.kill_flag = True
@@ -159,5 +89,5 @@ class CheckersBoard:
             # then set the current pawn to this coords and get it's possible moves
             if not self.kill_flag and turn == self.turn:
                 self.row, self.col = row, col
-                self.moves = self.possible_moves(row, col)
+                self.moves = possible_moves(self.matrix, row, col)
         return (move_done, self.moves)

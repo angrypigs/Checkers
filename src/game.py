@@ -38,7 +38,6 @@ class Game:
                                            self.images[pawn], 
                                            self.BOARD_START,
                                            j, i))
-        self.screen_changer.change(0)
         while self.run:
             self.screen.fill((0, 0, 0))
             self.handle_events()
