@@ -5,17 +5,20 @@ class CheckersBoard:
     """
     Matrix representation of checkers board, with most of needed methods
     """
-
     def __init__(self) -> None:
         self.ENEMIES = {'b': 'wW', 'w': 'bB', 'B': 'Ww', 'W': 'Bb', 'O': ' '}
         self.moves : tuple[Move] = ()
         self.matrix : list[list[str]]
+        self.computer_mode = True
         self.turn = 'w'
         self.kill_flag = False
         self.row = 0
         self.col = 0
 
     def change_turn(self) -> str:
+        if self.computer_mode:
+            self.turn = 'c' if self.turn == 'w' else 'w'
+            return self.turn
         self.turn = 'b' if self.turn == 'w' else 'w'
         return self.turn
 
@@ -43,41 +46,50 @@ class CheckersBoard:
             self.matrix.append(['O' for j in range(8)])
         for i in range(3):
             self.matrix.append([('w' if (i + j) % 2 == 0 else 'O') for j in range(8)])
- 
-    def select_pawn(self, row: int, col: int) -> tuple[Move | None, tuple[Move], bool]:
+
+    def handle_move(self, move: Move, computer: bool) -> None:
+        """
+        Handle and make given move
+        """
+        # check if move is a normal one (no kill)
+        if not move.is_kill():
+            self.__move((self.row, self.col), move.end)
+            self.row, self.col = -1, -1
+            self.kill_flag = False
+            self.moves = ()
+            if not computer:
+                self.change_turn()
+        else:
+            self.__move((self.row, self.col), move.end, move.kill)
+            kills = possible_kills(self.matrix, move.end[0], move.end[1])
+            # check if after kill there are any more available
+            if len(kills) > 0:
+                self.kill_flag = True
+                self.moves = kills
+                self.row, self.col = move.end
+            else:
+                self.row, self.col = -1, -1
+                self.kill_flag = False
+                self.moves = ()
+                if not computer:
+                    self.change_turn()
+
+    def board_input(self, 
+                    row: int, 
+                    col: int,
+                    computer_move : Move | None = None) -> tuple[Move | None, tuple[Move]]:
         """
         Select pawn / make move on given place
 
         Return tuple of:
         - done move (or None if move wasn't done) 
         - tuple of possible moves
-        - flag informing about the need for image change for pawn (default False)
         """
-        print(is_place_safe(self.matrix, row, col, self.matrix[row][col]))
         move_done = None
         for move in self.moves:
             # check if input coords are in one of possible moves from the last input
             if (row, col) == move.end:
-                # check if move is a normal one (no kill)
-                if move.is_not_kill():
-                    self.__move((self.row, self.col), (row, col))
-                    self.row, self.col = -1, -1
-                    self.kill_flag = False
-                    self.moves = ()
-                    self.change_turn()
-                else:
-                    self.__move((self.row, self.col), (row, col), move.kill)
-                    kills = possible_kills(self.matrix, row, col)
-                    # check if after kill there are any more available
-                    if len(kills) > 0:
-                        self.kill_flag = True
-                        self.moves = kills
-                        self.row, self.col = row, col
-                    else:
-                        self.row, self.col = -1, -1
-                        self.kill_flag = False
-                        self.moves = ()
-                        self.change_turn()
+                self.handle_move(move, False)
                 move_done = move
                 break
         else:

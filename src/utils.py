@@ -117,13 +117,25 @@ def possible_moves(matrix: list[list[str]], row: int, col: int) -> tuple[Move]:
                 moves.append(Move((row, col), (row - 1, col + 1), None))
     return tuple(moves) + possible_kills(matrix, row, col)
 
+def move_simulation(matrix: list[list[str]], move: Move) -> list[list[str]]:
+    new_matrix = [x[:] for x in matrix]
+    new_matrix[move.end[0]][move.end[1]] = new_matrix[move.start[0]][move.start[1]]
+    new_matrix[move.start[0]][move.start[1]] = "O"
+    if move.is_kill():
+        new_matrix[move.kill[0]][move.kill[1]] = "O"
+    
+    return new_matrix
 
 def kill_recursion(matrix: list[list[str]], 
                    row: int, col: int,
-                   kills: tuple[Move] | None = None) -> list[Move]:
+                   kills: tuple[Move] | None = None) -> tuple[list[Move], int]:
+    """
+    Recursively find all possible kills (with the next ones and next and etc...) of a given pawn in matrix
+    """
     if kills is None:
         kills = possible_kills(matrix, row, col)
     all_kills = list(kills)
+    next_kills_quantity = 0
     for kill in kills:
         new_matrix = [x[:] for x in matrix]
 
@@ -133,22 +145,27 @@ def kill_recursion(matrix: list[list[str]],
 
         new_kills = possible_kills(new_matrix, kill.end[0], kill.end[1])
         if new_kills:
-            all_kills.extend(kill_recursion(new_matrix, 
-                                            kill.end[0], 
-                                            kill.end[1], 
-                                            new_kills))
-    return all_kills
-
+            recursion = kill_recursion(new_matrix, 
+                                        kill.end[0], 
+                                        kill.end[1], 
+                                        new_kills)
+            all_kills.extend(recursion[0])
+            if recursion[1] > next_kills_quantity:
+                next_kills_quantity = recursion[1]
+    return (all_kills, next_kills_quantity + 1)
 
 def is_place_safe(matrix: list[list[str]], row: int, col: int, pawn: str) -> bool:
-    kills = []
+    """
+    Return bool depending of whether pawn on given coords can be killed by any enemy
+    """
+    kills : list[Move] = []
     for i in range(8):
         for j in range(8):
             if matrix[i][j] in ENEMIES[pawn]:
                 new_kills = possible_kills(matrix, i, j)
                 if new_kills:
                     kills.extend(kill_recursion([x[:] for x in matrix],
-                                                i, j, new_kills))
+                                                i, j, new_kills)[0])
     for kill in kills:
         if (row, col) == kill.kill:
             return False

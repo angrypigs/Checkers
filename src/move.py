@@ -8,8 +8,8 @@ class Move:
         self.end = end
         self.kill = kill
     
-    def is_not_kill(self) -> bool:
-        return self.kill is None
+    def is_kill(self) -> bool:
+        return self.kill is not None
 
     def __str__(self) -> str:
         return f"{self.start} {self.end} {self.kill}"

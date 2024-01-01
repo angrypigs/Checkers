@@ -4,7 +4,7 @@ from pygame import Surface, SRCALPHA
 
 
 
-class screenChanger:
+class ScreenChanger:
 
     def __init__(self, screen, width: int, height: int) -> None:
         self.WIDTH = width
