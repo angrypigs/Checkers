@@ -119,11 +119,14 @@ def possible_moves(matrix: list[list[str]], row: int, col: int) -> tuple[Move]:
 
 def move_simulation(matrix: list[list[str]], move: Move) -> list[list[str]]:
     new_matrix = [x[:] for x in matrix]
-    new_matrix[move.end[0]][move.end[1]] = new_matrix[move.start[0]][move.start[1]]
+    pawn = new_matrix[move.start[0]][move.start[1]]
+    if (pawn == 'b' and move.end[0] == 7 or
+        pawn == 'w' and move.end[0] == 0):
+        pawn = pawn.upper()
+    new_matrix[move.end[0]][move.end[1]] = pawn
     new_matrix[move.start[0]][move.start[1]] = "O"
     if move.is_kill():
         new_matrix[move.kill[0]][move.kill[1]] = "O"
-    
     return new_matrix
 
 def kill_recursion(matrix: list[list[str]], 

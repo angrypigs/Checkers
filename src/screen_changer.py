@@ -19,9 +19,9 @@ class ScreenChanger:
     def __bool__(self) -> bool:
         return not self.anim
 
-    def change(self, index: int) -> None:
+    def change(self, func) -> None:
         self.anim = True
-        self.current_screen = index
+        self.func = func
 
     def draw(self) -> None:
         self.screen.blit(self.rectangle, (0, 0))
@@ -31,6 +31,7 @@ class ScreenChanger:
                     self.alpha += 5
                 else:
                     self.fade_in = False
+                    self.func()
             else:
                 if self.alpha > 0:
                     self.alpha -= 5

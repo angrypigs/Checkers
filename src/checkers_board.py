@@ -76,8 +76,7 @@ class CheckersBoard:
 
     def board_input(self, 
                     row: int, 
-                    col: int,
-                    computer_move : Move | None = None) -> tuple[Move | None, tuple[Move]]:
+                    col: int) -> tuple[Move | None, tuple[Move]]:
         """
         Select pawn / make move on given place
 
