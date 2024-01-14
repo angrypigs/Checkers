@@ -23,7 +23,6 @@ class Game:
         self.moves : tuple[tuple[int, int]] = ()
         self.board = CheckersBoard()
         self.computer_side = ComputerSide(self.board)
-        self.board.reset_board()
         self.matrix = self.board.matrix
         pygame.init()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -31,14 +30,6 @@ class Game:
         self.screen_changer = ScreenChanger(self.screen, self.WIDTH, self.HEIGHT)
         self.clock = pygame.time.Clock()
         self.__init_assets()
-        for i in range(8):
-            for j in range(8):
-                pawn = self.board.matrix[i][j]
-                if pawn != 'O':
-                    self.pawns.append(Pawn(self.screen, 
-                                           self.IMAGES[pawn], 
-                                           self.BOARD_START,
-                                           j, i))
         while self.run:
             self.screen.fill((189, 179, 116))
             self.handle_events()
@@ -58,6 +49,19 @@ class Game:
     def anim(self) -> bool:
         return not any(self.pawns) and self.screen_changer
 
+    def reset_game(self) -> None:
+        self.moves = ()
+        self.board.reset_board()
+        self.pawns.clear()
+        for i in range(8):
+            for j in range(8):
+                pawn = self.board.matrix[i][j]
+                if pawn != 'O':
+                    self.pawns.append(Pawn(self.screen, 
+                                           self.IMAGES[pawn], 
+                                           self.BOARD_START,
+                                           j, i))
+
     def change_scene(self, scene: str,
                      computer: bool | None = None) -> None:
         self.scene = scene
@@ -69,9 +73,10 @@ class Game:
         Handle events in main loop
         """
         if self.scene == "game":
-            if (self.board.computer_mode and
-                len(self.computer_side.moves) > 0 and
-                self.anim()):
+            if self.board.winner is not None and self.anim():
+                self.screen_changer.change(lambda: self.change_scene("over"))
+                return
+            if self.computer_side and self.anim():
                 move = self.computer_side.moves.pop(0)
                 self.board.row, self.board.col = move.start
                 self.board.handle_move(move, True)
@@ -89,15 +94,17 @@ class Game:
                     a = (event.pos[1] - self.BOARD_START[1]) // 64
                     b = (event.pos[0] - self.BOARD_START[0]) // 64
                     if 0 <= a <= 7 and 0 <= b <= 7:
-                        self.handle_moves(a, b)
+                        self.handle_board_input(a, b)
                 elif (self.scene == "over" and 
-                      self.over_btn.is_colliding(event.pos)):
+                      self.over_btn.is_clicked(event.pos)):
                     self.screen_changer.change(lambda: self.change_scene("menu"))
                 elif self.scene == "menu":
-                    if self.one_btn.is_colliding(event.pos):
+                    if self.one_btn.is_clicked(event.pos):
                         self.screen_changer.change(lambda: self.change_scene("game", True))
-                    elif self.two_btn.is_colliding(event.pos):
+                        self.reset_game()
+                    elif self.two_btn.is_clicked(event.pos):
                         self.screen_changer.change(lambda: self.change_scene("game", False))
+                        self.reset_game()
 
     def handle_pawns(self, move: Move) -> None:
         pawn_to_remove = None
@@ -110,11 +117,14 @@ class Game:
         if pawn_to_remove is not None:
             self.pawns.remove(pawn_to_remove)
 
-    def handle_moves(self, a: int, b: int) -> None:
+    def handle_board_input(self, a: int, b: int) -> None:
         """
         Handle board input
         """
         moves = self.board.board_input(a, b)
+        if self.board.winner is not None:
+            self.screen_changer.change(lambda: self.change_scene("over"))
+            return
         if moves[0] is not None:
             self.handle_pawns(moves[0])
         self.moves = tuple([x.end for x in moves[1]])

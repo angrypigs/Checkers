@@ -26,7 +26,7 @@ def lerp(a: float,
          to_integers: bool = False
          ) -> tuple[float | int]:
     """
-    Return tuple of values linear interpolated between 
+    Return tuple of values quadratic interpolated between 
     a and b in given steps, if to_integer is True then
     return list of int, not float
     """
@@ -79,7 +79,6 @@ def possible_kills(matrix: list[list[str]], row: int, col: int) -> tuple[Move]:
                     matrix[c][d] == 'O'):
                     moves.append(Move((row, col), (c, d), (a, b)))
     return tuple(moves)
-
 
 def possible_moves(matrix: list[list[str]], row: int, col: int) -> tuple[Move]:
     """

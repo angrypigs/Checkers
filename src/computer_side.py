@@ -14,6 +14,9 @@ class ComputerSide:
         self.moves : list[Move] = []
         self.kill_flag = False
 
+    def __bool__(self) -> bool:
+        return bool(self.moves)
+
     def computer_move(self) -> None:
         """
         Start Thread calculating computer move,

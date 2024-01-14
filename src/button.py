@@ -15,7 +15,7 @@ class Button:
     def draw(self) -> None:
         self.screen.blit(self.image, self.coords)
     
-    def is_colliding(self, pos: tuple[int, int]) -> bool:
+    def is_clicked(self, pos: tuple[int, int]) -> bool:
         if self.rect.collidepoint(pos):
             return True
         return False
